@@ -1,5 +1,5 @@
 [package]
-name = "sway-config-override"
+name = "sway_config_override"
 version = "0.1.0"
 edition = "2021"
 
