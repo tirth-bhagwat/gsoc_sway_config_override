@@ -13,19 +13,30 @@ pub enum Config {
 /// - 0 => checks if path is valid
 /// - 1 => checks if path is valid directory
 /// - 2 => checks if path is valid file
-/// - _ => returns false
-fn validate_path<'a>(file: &'a str, code: i8) -> Result<&'a str, &'a str> {
-    let result = match code {
-        0 => Path::new(file).exists(),
-        1 => Path::new(file).exists() && Path::new(file).is_dir(),
-        2 => Path::new(file).exists() && Path::new(file).is_file(),
+fn validate_path<'a>(path: &'a str, code: i8) -> Result<String, String> {
+    let result = format_path(String::from(path));
+    let is_valid = match code {
+        0 => Path::new(result.as_str()).exists(),
+        1 => Path::new(result.as_str()).exists() && Path::new(result.as_str()).is_dir(),
+        2 => Path::new(result.as_str()).exists() && Path::new(result.as_str()).is_file(),
         _ => false,
     };
-    if result == false {
-        return Err(file);
+    if is_valid == false {
+        return Err(result.to_string());
     } else {
-        return Ok(file);
+        return Ok(result.to_string());
     }
+}
+
+fn format_path(path: String) -> String {
+    let mut result = String::from(path.trim());
+    if result.ends_with("/*") {
+        result.pop().unwrap();
+        result.pop().unwrap();
+    } else if result.ends_with("/") {
+        result.pop().unwrap();
+    }
+    result
 }
 
 pub fn read_sway_config(path: &str) -> Result<Vec<Config>, &'static str> {
@@ -42,7 +53,7 @@ pub fn read_sway_config(path: &str) -> Result<Vec<Config>, &'static str> {
 
             for path in x {
                 let p = validate_path(path.trim(), 1).expect("Not a valid directory ");
-                paths.push(p.to_string());
+                paths.push(format_path(p));
             }
             configs.push(Config::IncludeOne { paths })
         } else if line.starts_with(KW_INCLUDE) {
@@ -54,7 +65,7 @@ pub fn read_sway_config(path: &str) -> Result<Vec<Config>, &'static str> {
             let path = validate_path(&path, 1).expect("Invalid directory ");
 
             configs.push(Config::Include {
-                path: path.to_string(),
+                path: format_path(path),
             });
         }
     }
@@ -70,13 +81,16 @@ mod test {
     fn test_read_sway_config() {
         let expexted = vec![
             Config::Include {
-                path: "/home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_1/".to_string(),
+                path:
+                    "/home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_1"
+                        .to_string(),
             },
             Config::IncludeOne {
                 paths: vec![
-                    "/home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_1/"
+                    "/home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_1"
                         .to_string(),
-                    "/home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_2/".to_string(),
+                    "/home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_2"
+                        .to_string(),
                 ],
             },
         ];

@@ -1,5 +1,4 @@
 mod conf_reader;
-use std::path::Path;
 
 use conf_reader::{read_sway_config, Config};
 
