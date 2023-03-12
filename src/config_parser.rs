@@ -5,8 +5,10 @@ use std::fs;
 const KW_INCLUDE: &str = "include";
 const KW_INCLUDE_ONE: &str = "include_one";
 
-pub fn read_sway_config(path: &str) -> Result<Vec<Config>, &'static str> {
-    let config_text = fs::read_to_string(&path).expect("Unable to read file ");
+pub fn read_sway_config(path: &str) -> Result<Vec<Config>, String> {
+    let cfg = validate_path(&path, 2).unwrap_or_else(|err| format!("Invalid sway config {err}"));
+    let config_text =
+        fs::read_to_string(&cfg).unwrap_or_else(|err| format!("Unable to read file {err}"));
 
     let mut configs = Vec::new();
 
@@ -14,21 +16,26 @@ pub fn read_sway_config(path: &str) -> Result<Vec<Config>, &'static str> {
         if line.starts_with(KW_INCLUDE_ONE) {
             let mut x = line.split(" ");
 
-            x.next().expect("Error reading config file");
+            x.next().unwrap_or_else(|| "Error reading config file...");
             let mut paths = Vec::new();
 
             for path in x {
-                let p = validate_path(path.trim(), 1).expect("Not a valid directory ");
+                let p = validate_path(path.trim(), 1)
+                    .unwrap_or_else(|err| format!("Not a valid directory {err}"));
                 paths.push(format_path(p));
             }
             configs.push(Config::IncludeOne { paths })
         } else if line.starts_with(KW_INCLUDE) {
             let mut x = line.split(" ");
 
-            x.next().expect("Error reading config file");
+            x.next().unwrap_or_else(|| "Error reading config file...");
 
-            let path = x.next().expect("Error reading config file ").to_string();
-            let path = validate_path(&path, 1).expect("Invalid directory ");
+            let path = x
+                .next()
+                .unwrap_or_else(|| "Error reading config file...")
+                .to_string();
+            let path =
+                validate_path(&path, 1).unwrap_or_else(|err| format!("Invalid directory {err}"));
 
             configs.push(Config::Include {
                 path: format_path(path),

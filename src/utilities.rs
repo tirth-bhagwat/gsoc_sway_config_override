@@ -1,4 +1,7 @@
-use std::path::Path;
+use std::{
+    path::{Path, PathBuf},
+    result,
+};
 
 /// Takes 3 codes:
 /// - 0 => checks if path is valid
@@ -6,16 +9,21 @@ use std::path::Path;
 /// - 2 => checks if path is valid file
 pub fn validate_path<'a>(path: &'a str, code: i8) -> Result<String, String> {
     let result = format_path(String::from(path));
+
+    let result = PathBuf::from(&result).canonicalize().unwrap_or_else(|err| {
+        let p_str: String = shellexpand::full(&result).unwrap().try_into().unwrap();
+        PathBuf::from(p_str)
+    });
     let is_valid = match code {
-        0 => Path::new(result.as_str()).exists(),
-        1 => Path::new(result.as_str()).exists() && Path::new(result.as_str()).is_dir(),
-        2 => Path::new(result.as_str()).exists() && Path::new(result.as_str()).is_file(),
+        0 => result.exists(),
+        1 => result.exists() && result.is_dir(),
+        2 => result.exists() && result.is_file(),
         _ => false,
     };
     if is_valid == false {
-        return Err(result.to_string());
+        return Err(result.as_path().to_str().unwrap().to_string());
     } else {
-        return Ok(result.to_string());
+        return Ok(result.as_path().to_str().unwrap().to_string());
     }
 }
 

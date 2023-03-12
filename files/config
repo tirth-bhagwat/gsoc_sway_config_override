@@ -3,7 +3,7 @@
 ###############################################################################
 
 # Include any regolith sway partials
-include /home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_1/*
+include $HOME/Projects/gsoc-tasks/sway_config_override/files/test---_configs/dir_1/*
 
 # Include any user sway partials
 include_one /home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_1/ /home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_2
