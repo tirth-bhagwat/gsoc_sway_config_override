@@ -8,5 +8,8 @@
 # # Include any user sway partials
 # include_one /home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_1/ /home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_2
 
-include /home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_4
-include_one /home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_3
+include_one ./files/test_configs/dir_3 ./files/test_configs/dir_4
+
+# the following can also be uncommented to run
+# include ./files/test_configs/dir_3
+# include ./files/test_configs/dir_4
