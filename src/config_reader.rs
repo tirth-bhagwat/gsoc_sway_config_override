@@ -1,19 +1,19 @@
 use crate::enums::Config;
+use std::error::Error as ErrorTrait;
 use std::path::{Path, PathBuf};
 
-pub fn reader<'a>(config: &'a Vec<Config>) -> Result<Vec<PathBuf>, &'static str> {
+pub fn reader<'a>(config: &'a Vec<Config>) -> Result<Vec<PathBuf>, Box<dyn ErrorTrait>> {
     let mut selected: Vec<PathBuf> = Vec::new();
 
     for conf in config {
         match conf {
             Config::Include { path } => {
                 let files = Path::new(path)
-                    .read_dir()
-                    .expect("Cannot read direcrory contents")
+                    .read_dir()?
                     .filter(|x| x.as_ref().unwrap().file_type().unwrap().is_file());
 
                 for f in files {
-                    let tmp = f.unwrap().path().as_path().to_owned();
+                    let tmp = f?.path().as_path().to_owned();
                     if let Some(index) = selected
                         .iter()
                         .position(|x| x.file_name() == tmp.file_name())
@@ -27,12 +27,11 @@ pub fn reader<'a>(config: &'a Vec<Config>) -> Result<Vec<PathBuf>, &'static str>
             Config::IncludeOne { paths } => {
                 for dir in paths {
                     let files = Path::new(dir)
-                        .read_dir()
-                        .expect("Cannot read direcrory contents")
+                        .read_dir()?
                         .filter(|x| x.as_ref().unwrap().file_type().unwrap().is_file());
 
                     for f in files {
-                        let tmp = f.unwrap().path();
+                        let tmp = f?.path();
                         if !(selected.iter().any(|x| x.file_name() == tmp.file_name())) {
                             selected.push(tmp)
                         }

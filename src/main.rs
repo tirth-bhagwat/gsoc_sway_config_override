@@ -3,36 +3,37 @@ mod config_reader;
 mod enums;
 mod utilities;
 
-use std::{path::PathBuf, process};
-
 use config_parser::read_sway_config;
 use config_reader::reader;
-use shellexpand;
+use std::env;
+use std::process;
+
+use crate::utilities::validate_path;
 
 fn main() {
-    let config_path = "/home/tirth/Projects/gsoc-tasks/sway_config_override/files/config";
+    let args: Vec<String> = env::args().collect();
 
-    let config = read_sway_config(config_path).unwrap_or_else(|err| {
-        panic!("Error while reading sway config {err}");
+    if args.len() < 2 {
+        eprintln!("Config file path required as an arguement...");
+        process::exit(1);
+    }
+    let config_path = validate_path(&args[1], 2).unwrap_or_else(|err| {
+        eprintln!("invalid file : {err}");
+        process::exit(1);
+    });
+
+    let config = read_sway_config(&config_path).unwrap_or_else(|err| {
+        eprintln!("Error while reading sway config at: {err}");
+        process::exit(1);
     });
 
     let selected_files = reader(&config).unwrap_or_else(|err| {
-        panic!("Error while reading sway config {err}");
+        eprintln!("Error while reading : {err}");
+        process::exit(1);
     });
 
-    ///////////////////////////////////////////////
-
-    let x = "$HOME/files/conf/*";
-    let y = PathBuf::from(x).canonicalize().unwrap_or_else(|err| {
-        let p_str: String = shellexpand::full(x).unwrap().try_into().unwrap();
-        println!("*(*(*(*(*(*(**(*(*(*(*(*((*(*");
-        PathBuf::from(p_str)
-    });
-    // let p: String = shellexpand::full(x).unwrap().try_into().unwrap();
-
-    dbg!(y);
-
-    ///////////////////////////////////////////////
-
-    dbg!(selected_files);
+    println!("Selected files : ");
+    for f in selected_files {
+        println!("{}", f.as_path().to_str().unwrap());
+    }
 }

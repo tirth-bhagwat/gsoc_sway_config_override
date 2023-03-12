@@ -1,7 +1,4 @@
-use std::{
-    path::{Path, PathBuf},
-    result,
-};
+use std::path::PathBuf;
 
 /// Takes 3 codes:
 /// - 0 => checks if path is valid
@@ -10,7 +7,7 @@ use std::{
 pub fn validate_path<'a>(path: &'a str, code: i8) -> Result<String, String> {
     let result = format_path(String::from(path));
 
-    let result = PathBuf::from(&result).canonicalize().unwrap_or_else(|err| {
+    let result = PathBuf::from(&result).canonicalize().unwrap_or_else(|_| {
         let p_str: String = shellexpand::full(&result).unwrap().try_into().unwrap();
         PathBuf::from(p_str)
     });
