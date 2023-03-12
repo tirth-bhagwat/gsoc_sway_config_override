@@ -1,24 +1,28 @@
-mod conf_reader;
+mod config_parser;
+mod enums;
+mod utilities;
+mod config_reader;
 
-use conf_reader::{read_sway_config, Config};
+use std::fs;
+use std::path::Path;
+use std::process;
+
+
+use config_parser::read_sway_config;
 
 fn main() {
-    read_sway_config("/home/tirth/Projects/gsoc-tasks/sway_config_override/files/config")
-        .expect("Error in main");
+    let config_path = "/home/tirth/Projects/gsoc-tasks/sway_config_override/files/config";
 
-    // let p = "/home/tirth/Projects/gsoc-tasks/sway_config_override/files/";
-    // let p2 = Path::new(p).as_os_str().to_str().unwrap();
-    // println!("{p2}");
-    // let p2 = "/home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_1/";
+    let config = read_sway_config(config_path).unwrap_or_else(|err| {
+        eprintln!("Error while reading sway config {err}");
+        process::exit(1);
+    });
 
-    // let c1 = std::path::Path::new(p2).exists();
-    // println!("{c1}");
+    dbg!(config);
 
-    // let t = fs::read_to_string(&p).unwrap();
-
-    // println!("{t}");
-
-    // let s = read_sway_config(&p).unwrap();
-
-    // println!("{:?}", s);
+    let p = "/home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_1";
+    let x = fs::read_dir(p).unwrap();
+    for i in x {
+        println!("{:?}", i.unwrap().path());
+    }
 }
