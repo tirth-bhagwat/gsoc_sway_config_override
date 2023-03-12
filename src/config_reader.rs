@@ -1,7 +1,6 @@
 use crate::enums::Config;
 use std::path::{Path, PathBuf};
 
-#[allow(unused)]
 pub fn reader<'a>(config: &'a Vec<Config>) -> Result<Vec<PathBuf>, &'static str> {
     let mut selected: Vec<PathBuf> = Vec::new();
 
@@ -25,7 +24,21 @@ pub fn reader<'a>(config: &'a Vec<Config>) -> Result<Vec<PathBuf>, &'static str>
                     }
                 }
             }
-            Config::IncludeOne { paths } => {}
+            Config::IncludeOne { paths } => {
+                for dir in paths {
+                    let files = Path::new(dir)
+                        .read_dir()
+                        .expect("Cannot read direcrory contents")
+                        .filter(|x| x.as_ref().unwrap().file_type().unwrap().is_file());
+
+                    for f in files {
+                        let tmp = f.unwrap().path();
+                        if !(selected.iter().any(|x| x.file_name() == tmp.file_name())) {
+                            selected.push(tmp)
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -60,9 +73,30 @@ mod test {
         ];
 
         let expected = vec![
-            PathBuf::from("/home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_2/a.conf"),PathBuf::from("/home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_1/b.conf")
+            PathBuf::from("/home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_2/a.conf"),
+            PathBuf::from("/home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_1/b.conf"),
+            PathBuf::from("/home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_2/c.conf"),
         ];
+        let res = reader(&config).unwrap();
+        dbg!(&res);
+        assert_eq!(expected, res);
 
-        assert_eq!(expected, reader(&config).unwrap());
+        let config = vec![Config::IncludeOne {
+            paths: vec![
+                "/home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_1"
+                    .to_string(),
+                "/home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_2"
+                    .to_string(),
+            ],
+        }];
+
+        let expected = vec![
+            PathBuf::from("/home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_1/a.conf"),
+            PathBuf::from("/home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_1/b.conf"),
+            PathBuf::from("/home/tirth/Projects/gsoc-tasks/sway_config_override/files/test_configs/dir_2/c.conf"),
+        ];
+        let res = reader(&config).unwrap();
+        dbg!(&res);
+        assert_eq!(expected, res);
     }
 }
